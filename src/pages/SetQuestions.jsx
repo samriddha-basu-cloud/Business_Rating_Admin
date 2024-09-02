@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { PencilIcon, TrashIcon, PlusIcon, MessageCircleQuestionIcon } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
+import 'react-toastify/dist/ReactToastify.css'; // Import CSS for Toast
 
 const SetQuestions = () => {
   const [parameter, setParameter] = useState('');
@@ -39,7 +41,7 @@ const SetQuestions = () => {
       try {
         const questionRef = doc(db, 'questions', currentQuestionId);
         await updateDoc(questionRef, { parameter, description });
-        alert('Question updated successfully!');
+        toast.success('Question updated successfully!', { autoClose: 2000 }); // Display success toast for updating
         setIsEditing(false);
         setCurrentQuestionId(null);
         fetchQuestions();
@@ -55,7 +57,7 @@ const SetQuestions = () => {
         });
         setParameter('');
         setDescription('');
-        alert('Question added successfully!');
+        toast.success('Question added successfully!', { autoClose: 2000 }); // Display success toast for adding
         fetchQuestions();
       } catch (error) {
         console.error('Error adding question:', error);
@@ -73,7 +75,7 @@ const SetQuestions = () => {
   const handleDelete = async (questionId) => {
     try {
       await deleteDoc(doc(db, 'questions', questionId));
-      alert('Question deleted successfully!');
+      toast.success('Question deleted successfully!', { autoClose: 2000 }); // Display success toast for deleting
       fetchQuestions();
     } catch (error) {
       console.error('Error deleting question:', error);
@@ -93,6 +95,7 @@ const SetQuestions = () => {
 
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-gray-100 min-h-screen">
+      <ToastContainer /> {/* Add the ToastContainer component */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-gradient-to-br from-green-400 to-blue-500 p-1 rounded-xl shadow-xl mb-4 sm:mb-6">
           <div className="bg-white rounded-lg p-3 sm:p-4 flex items-center justify-center">
