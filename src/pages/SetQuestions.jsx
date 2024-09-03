@@ -96,11 +96,11 @@ const SetQuestions = () => {
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-gray-100 min-h-screen">
       <ToastContainer /> {/* Add the ToastContainer component */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl sm:max-w-4xl md:max-w-5xl mx-auto">
         <div className="bg-gradient-to-br from-green-400 to-blue-500 p-1 rounded-xl shadow-xl mb-4 sm:mb-6">
-          <div className="bg-white rounded-lg p-3 sm:p-4 flex items-center justify-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center justify-center">
-              <MessageCircleQuestionIcon className="mr-2 text-blue-500" size={20} />
+          <div className="bg-white rounded-lg p-3 sm:p-4">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 flex items-center justify-center">
+              <MessageCircleQuestionIcon className="mr-2 sm:mr-3 text-blue-500" size={24} />
               Manage Questions
             </h2>
           </div>

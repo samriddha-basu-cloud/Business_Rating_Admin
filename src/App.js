@@ -8,7 +8,7 @@ import UserRanking from './pages/UserRanking';
 const App = () => {
   return (
     <Router>
-      <div className="flex min-h-screen bg-gray-100 z-150">
+      <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
         <div className="flex-1 ml-16 lg:ml-64 transition-all duration-300">
           <main className="p-4 md:p-8">

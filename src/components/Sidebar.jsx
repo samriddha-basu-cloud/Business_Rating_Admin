@@ -34,7 +34,7 @@ const Sidebar = () => {
     <div 
       className={`fixed top-0 left-0 h-full ${
         isOpen ? 'w-56 sm:w-64' : 'w-14 sm:w-16'
-      } bg-gradient-to-b from-green-400 to-blue-500 transition-all duration-300 ease-in-out shadow-lg md:w-64`}
+      } bg-gradient-to-b from-green-400 to-blue-500 transition-all duration-300 ease-in-out shadow-lg md:w-64 z-50`}
     >
       <button
         className="m-3 sm:m-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1 sm:p-2 transition-colors duration-200 md:hidden"
