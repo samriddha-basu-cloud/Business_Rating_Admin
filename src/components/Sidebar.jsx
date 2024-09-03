@@ -41,7 +41,7 @@ const Sidebar = () => {
     <div 
       className={`fixed top-0 left-0 h-full flex flex-col justify-between ${
         isOpen ? 'w-56 sm:w-64' : 'w-14 sm:w-16'
-      } bg-gradient-to-b from-green-400 to-blue-500 transition-all duration-300 ease-in-out shadow-lg md:w-64 z-50`}
+      } bg-gradient-to-b from-green-400 to-blue-500 transition-all duration-300 ease-in-out shadow-lg md:w-64 z-60`}
     >
       <div>
         <button
