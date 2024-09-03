@@ -357,18 +357,22 @@ const SetQuestions = () => {
                   ) : (
                     <div>
                       {/* <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{ {__html: question.heading}}</h4> */}
-                      <div
-                        className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
-                        dangerouslySetInnerHTML={{ __html: question.heading }}
-                      ></div>
+                     <div className="font-bold mb-1">Heading</div>
+                    <div
+                      className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
+                      dangerouslySetInnerHTML={{ __html: question.heading }}
+                    ></div>
+                    <div className="font-bold mb-1">Naration</div>
                       <div
                         className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
                         dangerouslySetInnerHTML={{ __html: question.narration }}
                       ></div>
+                      <div className="font-bold mb-1">Question</div>
                       <div
                         className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
                         dangerouslySetInnerHTML={{ __html: question.question }}
                       ></div>
+                      <div className="font-bold mb-1">Options</div>
                       <ul className="list-disc pl-5">
                         {question.options.map((option, index) => (
                           <li key={index} className="text-sm sm:text-base text-gray-700 mb-1">
