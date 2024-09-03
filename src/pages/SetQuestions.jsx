@@ -4,15 +4,20 @@ import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase
 import { PencilIcon, TrashIcon, PlusIcon, MessageCircleQuestionIcon } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const SetQuestions = () => {
-  const [parameter, setParameter] = useState('');
-  const [description, setDescription] = useState('');
+  // State for the new fields
+  const [heading, setHeading] = useState('');
+  const [narration, setNarration] = useState('');
+  const [question, setQuestion] = useState('');
   const [questions, setQuestions] = useState([]);
+  const [options, setOptions] = useState([{ text: '', marks: 0 }]); // State for options
   const [isEditing, setIsEditing] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [editableQuestionId, setEditableQuestionId] = useState(null); // State for inline editing
+  const [editableQuestionId, setEditableQuestionId] = useState(null);
 
   const fetchQuestions = async () => {
     try {
@@ -41,7 +46,7 @@ const SetQuestions = () => {
     if (isEditing) {
       try {
         const questionRef = doc(db, 'questions', currentQuestionId);
-        await updateDoc(questionRef, { parameter, description });
+        await updateDoc(questionRef, { heading, narration, question, options });
         toast.success('Question updated successfully!', { autoClose: 2000 });
         setIsEditing(false);
         setCurrentQuestionId(null);
@@ -52,12 +57,16 @@ const SetQuestions = () => {
     } else {
       try {
         await addDoc(collection(db, 'questions'), {
-          parameter,
-          description,
+          heading,
+          narration,
+          question,
+          options,
           ques_id: Date.now(),
         });
-        setParameter('');
-        setDescription('');
+        setHeading('');
+        setNarration('');
+        setQuestion('');
+        setOptions([{ text: '', marks: 0 }]); // Reset options
         toast.success('Question added successfully!', { autoClose: 2000 });
         fetchQuestions();
       } catch (error) {
@@ -68,8 +77,10 @@ const SetQuestions = () => {
 
   const handleEdit = (question) => {
     setEditableQuestionId(question.id);
-    setParameter(question.parameter);
-    setDescription(question.description);
+    setHeading(question.heading);
+    setNarration(question.narration);
+    setQuestion(question.question);
+    setOptions(question.options || [{ text: '', marks: 0 }]); // Load existing options or default
     setIsEditing(true);
     setCurrentQuestionId(question.id);
   };
@@ -84,8 +95,23 @@ const SetQuestions = () => {
     }
   };
 
+  const handleOptionChange = (index, field, value) => {
+    const updatedOptions = [...options];
+    updatedOptions[index][field] = value;
+    setOptions(updatedOptions);
+  };
+
+  const addOption = () => {
+    setOptions([...options, { text: '', marks: 0 }]);
+  };
+
+  const removeOption = (index) => {
+    const updatedOptions = options.filter((_, i) => i !== index);
+    setOptions(updatedOptions);
+  };
+
   const handleInlineEditChange = (id, field, value) => {
-    const updatedQuestions = questions.map((q) => 
+    const updatedQuestions = questions.map((q) =>
       q.id === id ? { ...q, [field]: value } : q
     );
     setQuestions(updatedQuestions);
@@ -97,11 +123,13 @@ const SetQuestions = () => {
       try {
         const questionRef = doc(db, 'questions', id);
         await updateDoc(questionRef, {
-          parameter: questionToUpdate.parameter,
-          description: questionToUpdate.description,
+          heading: questionToUpdate.heading,
+          narration: questionToUpdate.narration,
+          question: questionToUpdate.question,
+          options: questionToUpdate.options,
         });
         toast.success('Question updated successfully!', { autoClose: 2000 });
-        setEditableQuestionId(null); // Close inline editing mode
+        setEditableQuestionId(null);
         fetchQuestions();
       } catch (error) {
         console.error('Error updating question:', error);
@@ -133,21 +161,101 @@ const SetQuestions = () => {
           </div>
         </div>
         <form onSubmit={handleSubmit} className="mb-4 sm:mb-6 space-y-3">
-          <input
-            type="text"
-            value={parameter}
-            onChange={(e) => setParameter(e.target.value)}
-            className="p-2 sm:p-3 border rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-            placeholder="Enter the question's parameter"
-            required
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Heading</h4>
+          <ReactQuill
+            value={heading}
+            onChange={setHeading}
+            className="bg-white rounded-lg shadow-md mb-2"
+            placeholder="Enter the heading"
+            theme="snow"
+            modules={{
+              toolbar: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean'],
+              ],
+            }}
           />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="p-2 sm:p-3 border rounded-lg w-full h-20 sm:h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-            placeholder="Enter the question's description"
-            required
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Narative</h4>
+          <ReactQuill
+            value={narration}
+            onChange={setNarration}
+            className="bg-white rounded-lg shadow-md mb-2"
+            placeholder="Enter the narration"
+            theme="snow"
+            modules={{
+              toolbar: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean'],
+              ],
+            }}
           />
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Question</h4>
+          <ReactQuill
+            value={question}
+            onChange={setQuestion}
+            className="bg-white rounded-lg shadow-md mb-2"
+            placeholder="Enter the question"
+            theme="snow"
+            modules={{
+              toolbar: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean'],
+              ],
+            }}
+          />
+          <div>
+            <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Options</h4>
+            {options.map((option, index) => (
+              <div key={index} className="flex items-center mb-2">
+                <input
+                  type="text"
+                  value={option.text}
+                  onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
+                  className="p-2 border rounded mr-2 flex-grow"
+                  placeholder={`Option ${index + 1}`}
+                />
+                <input
+                  type="number"
+                  value={option.marks}
+                  onChange={(e) => handleOptionChange(index, 'marks', parseInt(e.target.value, 10))}
+                  className="p-2 border rounded w-20 mr-2"
+                  placeholder="Marks"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeOption(index)}
+                  className="p-1 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                >
+                  <TrashIcon size={16} />
+                </button>
+              </div>
+            ))}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={addOption}
+                className="w-1/5 p-2 sm:p-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:from-green-500 hover:to-blue-600 text-sm sm:text-base"
+              >
+                <PlusIcon size={16} className="mr-2" />
+                Add Option
+              </button>
+            </div>
+          </div>
           <button
             type="submit"
             className="w-full p-2 sm:p-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:from-green-500 hover:to-blue-600 text-sm sm:text-base"
@@ -168,17 +276,77 @@ const SetQuestions = () => {
                 >
                   {editableQuestionId === question.id ? (
                     <div>
-                      <input
-                        type="text"
-                        value={question.parameter}
-                        onChange={(e) => handleInlineEditChange(question.id, 'parameter', e.target.value)}
+                      <ReactQuill
+                        value={question.heading}
+                        onChange={(value) => handleInlineEditChange(question.id, 'heading', value)}
                         className="p-2 border rounded w-full mb-2"
+                        modules={{
+                          toolbar: [
+                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'align': [] }],
+                            ['link'],
+                            ['clean'],
+                          ],
+                        }}
                       />
-                      <textarea
-                        value={question.description}
-                        onChange={(e) => handleInlineEditChange(question.id, 'description', e.target.value)}
+                      <ReactQuill
+                        value={question.narration}
+                        onChange={(value) => handleInlineEditChange(question.id, 'narration', value)}
                         className="p-2 border rounded w-full mb-2"
+                        modules={{
+                          toolbar: [
+                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'align': [] }],
+                            ['link'],
+                            ['clean'],
+                          ],
+                        }}
                       />
+                      <ReactQuill
+                        value={question.question}
+                        onChange={(value) => handleInlineEditChange(question.id, 'question', value)}
+                        className="p-2 border rounded w-full mb-2"
+                        modules={{
+                          toolbar: [
+                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            [{ 'align': [] }],
+                            ['link'],
+                            ['clean'],
+                          ],
+                        }}
+                      />
+                      {question.options.map((option, index) => (
+                        <div key={index} className="flex items-center mb-2">
+                          <input
+                            type="text"
+                            value={option.text}
+                            onChange={(e) => handleInlineEditChange(question.id, `options[${index}].text`, e.target.value)}
+                            className="p-2 border rounded mr-2 flex-grow"
+                          />
+                          <input
+                            type="number"
+                            value={option.marks}
+                            onChange={(e) => handleInlineEditChange(question.id, `options[${index}].marks`, parseInt(e.target.value, 10))}
+                            className="p-2 border rounded w-20 mr-2"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeOption(index)}
+                            className="p-1 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                          >
+                            <TrashIcon size={16} />
+                          </button>
+                        </div>
+                      ))}
                       <button
                         onClick={() => handleInlineEditSave(question.id)}
                         className="p-1 sm:p-2 text-green-500 hover:bg-green-100 rounded-full transition-colors"
@@ -188,8 +356,22 @@ const SetQuestions = () => {
                     </div>
                   ) : (
                     <div>
-                      <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.parameter}</h4>
-                      <p className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base">{question.description}</p>
+                      <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.heading}</h4>
+                      <div
+                        className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
+                        dangerouslySetInnerHTML={{ __html: question.narration }}
+                      ></div>
+                      <div
+                        className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
+                        dangerouslySetInnerHTML={{ __html: question.question }}
+                      ></div>
+                      <ul className="list-disc pl-5">
+                        {question.options.map((option, index) => (
+                          <li key={index} className="text-sm sm:text-base text-gray-700 mb-1">
+                            {option.text} - {option.marks} marks
+                          </li>
+                        ))}
+                      </ul>
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => handleEdit(question)}
