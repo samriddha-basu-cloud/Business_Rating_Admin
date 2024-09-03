@@ -8,13 +8,25 @@ import 'react-toastify/dist/ReactToastify.css';
 import loginimg from '../assets/login.jpg';
 import ecociateLogo from '../assets/ecociate_logo.png';
 import multiplierLogo from '../assets/multiplier.png';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons
+
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false); // State for confirm password visibility
 
   const navigate = useNavigate();
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleTogglePasswordConfirmationVisibility = () => {
+    setShowPasswordConfirmation(!showPasswordConfirmation);
+  };
 
   const handleAdminLogin = () => {
     toast.info('Switching to Rating Panel...', {
@@ -127,7 +139,7 @@ const AdminLogin = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label htmlFor="Password" className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
@@ -139,6 +151,29 @@ const AdminLogin = () => {
                   className="w-full px-4 py-2 rounded-xl bg-gray-200 shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)] focus:outline-none focus:ring-2 focus:ring-blue-900"
                   required
                 />
+              </div> */}
+
+              <div className="relative mb-4">
+                <label htmlFor="Password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-2 pr-10 rounded-xl bg-gray-200 shadow-[inset_6px_6px_10px_0_rgba(0,0,0,0.1),inset_-6px_-6px_10px_0_rgba(255,255,255,0.8)] focus:outline-none focus:ring-2 focus:ring-transparent ring-offset-2 ring-offset-green-400"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                    onClick={handleTogglePasswordVisibility}
+                  >
+                    {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-between items-center">
