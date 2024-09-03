@@ -12,10 +12,10 @@ const AssignAdmin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [admins, setAdmins] = useState([]);
+  const [isAdminsLoading, setIsAdminsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get the current logged-in user's information
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
@@ -24,7 +24,7 @@ const AssignAdmin = () => {
       }
     });
 
-    fetchAdmins(); // Fetch all current admins when the component mounts
+    fetchAdmins();
 
     return () => unsubscribe();
   }, []);
@@ -35,13 +35,16 @@ const AssignAdmin = () => {
       const q = query(usersRef, where('admin', '==', true));
       const querySnapshot = await getDocs(q);
       const adminsList = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setAdmins(adminsList);
+      setTimeout(() => {
+        setAdmins(adminsList);
+        setIsAdminsLoading(false);
+      }, 1000);
     } catch (error) {
       console.error('Error fetching admins:', error);
+      setIsAdminsLoading(false);
     }
   };
 
-  // Debounced fetch function for user input
   const debouncedFetchUser = useCallback(
     debounce(async (email) => {
       if (email === '') {
@@ -83,7 +86,7 @@ const AssignAdmin = () => {
       await updateDoc(userRef, { admin: true });
       toast.success('User assigned as Admin successfully!', { autoClose: 2000 });
       setUser({ ...user, admin: true });
-      fetchAdmins(); // Refresh the list of admins after assigning
+      fetchAdmins();
     } catch (error) {
       console.error('Error assigning admin:', error);
       toast.error('Failed to assign Admin.', { autoClose: 2000 });
@@ -95,7 +98,7 @@ const AssignAdmin = () => {
       const adminRef = doc(db, 'users', adminId);
       await updateDoc(adminRef, { admin: false });
       toast.success('Admin power revoked successfully!', { autoClose: 2000 });
-      fetchAdmins(); // Refresh the list of admins after revoking
+      fetchAdmins();
     } catch (error) {
       console.error('Error revoking admin power:', error);
       toast.error('Failed to revoke admin power.', { autoClose: 2000 });
@@ -109,12 +112,23 @@ const AssignAdmin = () => {
       const currentUserRef = doc(db, 'users', currentUser.uid);
       await updateDoc(currentUserRef, { admin: false });
       toast.success('Stepped down as Admin successfully!', { autoClose: 2000 });
-      navigate('/'); // Navigate to the login page after stepping down
+      navigate('/');
     } catch (error) {
       console.error('Error stepping down as admin:', error);
       toast.error('Failed to step down as Admin.', { autoClose: 2000 });
     }
   };
+
+  if (isAdminsLoading) {
+    return (
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-2xl">
+          <p className="text-lg sm:text-xl font-semibold text-gray-800 text-center">Loading Admins...</p>
+          <div className="mt-3 w-8 h-8 sm:w-10 sm:h-10 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-gray-100 min-h-screen">
@@ -169,38 +183,37 @@ const AssignAdmin = () => {
         {currentUser && (
           <button
             onClick={handleStepDownAsAdmin}
-            className="w-full p-2 sm:p-3 bg-red-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:bg-red-600 text-sm sm:text-base"
+            className="w-full p-2 sm:p-3 bg-red-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:bg-red-600 text-sm sm:text-base mb-4 sm:mb-6"
           >
             Step Down as Admin
           </button>
         )}
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Current Admins</h3>
           {admins.length > 0 ? (
             <ul className="space-y-4">
               {admins.map((admin) => (
                 <li
-                key={admin.id}
-                className="bg-white p-3 sm:p-4 rounded-xl shadow-md flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <CheckCircle className="text-green-500 mr-3" size={24} />
-                  <div>
-                    <h4 className="font-semibold text-base sm:text-lg text-gray-800">{admin.name || 'Unnamed User'}</h4>
-                    <p className="text-gray-600 text-sm">{admin.email}</p>
+                  key={admin.id}
+                  className="bg-white p-3 sm:p-4 rounded-xl shadow-md flex items-center justify-between transition-all duration-300 hover:shadow-lg"
+                >
+                  <div className="flex items-center">
+                    <CheckCircle className="text-green-500 mr-3" size={24} />
+                    <div>
+                      <h4 className="font-semibold text-base sm:text-lg text-gray-800">{admin.name || 'Unnamed User'}</h4>
+                      <p className="text-gray-600 text-sm">{admin.email}</p>
+                    </div>
                   </div>
-                </div>
-                {currentUser?.uid !== admin.id && ( // Do not show button for current logged-in user
-                  <button
-                    onClick={() => handleRevokeAdmin(admin.id)}
-                    className="flex items-center bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors duration-200"
-                  >
-                    <Trash2 className="mr-2" size={16} />
-                    Revoke Admin Power
-                  </button>
-                )}
-              </li>
+                  {currentUser?.uid !== admin.id && (
+                    <button
+                      onClick={() => handleRevokeAdmin(admin.id)}
+                      className="flex items-center bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors duration-200 text-sm sm:text-base"
+                    >
+                      <Trash2 className="" size={16} />
+                    </button>
+                  )}
+                </li>
               ))}
             </ul>
           ) : (
@@ -208,7 +221,6 @@ const AssignAdmin = () => {
           )}
         </div>
       </div>
-      {/* Inline CSS for the loading animation */}
       <style>{`
         .dot-flashing {
           position: relative;
@@ -257,7 +269,6 @@ const AssignAdmin = () => {
   );
 };
 
-// Debounce utility function
 function debounce(func, delay) {
   let timeoutId;
   return (...args) => {
