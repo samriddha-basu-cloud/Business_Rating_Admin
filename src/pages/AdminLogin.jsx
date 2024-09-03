@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebaseConfig';
+import { auth, db } from '../firebaseConfig'; // Import Firestore database
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getDocs, query, collection, where } from 'firebase/firestore'; // Import Firestore query functions
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import loginimg from '../assets/login.jpg';
+import ecociateLogo from '../assets/ecociate_logo.png';
+import multiplierLogo from '../assets/multiplier.png';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -14,14 +17,12 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   const handleAdminLogin = () => {
-    // Show the toast notification
     toast.info('Switching to Rating Panel...', {
       position: 'top-center',
       autoClose: 1000,
-      hideProgressBar: true,
+      hideProgressBar: false,
     });
 
-    // Set a timeout of 1 second before opening the Admin Panel
     setTimeout(() => {
       window.open('https://bussines-model.vercel.app/', '_blank');
     }, 2000);
@@ -29,34 +30,54 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start the loader
+    setLoading(true);
 
-    if (email === 'admin@ecociate.com' && password === 'ecociateadmin@1909') {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
+    try {
+      // Fetch user from Firestore based on email
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', email));
+      const querySnapshot = await getDocs(q);
 
-        toast.success('Login successful!', {
-          position: 'top-center',
-          autoClose: 2000,
-          hideProgressBar: true,
-        });
-
-        setLoading(false); // Stop the loader
-        navigate('/set-questions');
-      } catch (error) {
-        setLoading(false); // Stop the loader
-        toast.error('Login failed. Please try again.', {
+      if (querySnapshot.empty) {
+        // No user found with the given email
+        setLoading(false);
+        toast.error('Invalid credentials. Only admin can login.', {
           position: 'top-center',
           autoClose: 3000,
-          hideProgressBar: true,
+          hideProgressBar: false,
         });
+        return;
       }
-    } else {
-      setLoading(false); // Stop the loader
-      toast.error('Invalid credentials. Only admin can login.', {
+
+      // Check if the user has the admin field set to true
+      const userDoc = querySnapshot.docs[0].data(); // Get the first matching document
+      if (userDoc.admin !== true) {
+        setLoading(false);
+        toast.error('Access denied. Only admin can login.', {
+          position: 'top-center',
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
+        return;
+      }
+
+      // Sign in the user with email and password
+      await signInWithEmailAndPassword(auth, email, password);
+
+      toast.success('Login successful!', {
+        position: 'top-center',
+        autoClose: 2000,
+        hideProgressBar: false,
+      });
+
+      setLoading(false);
+      navigate('/set-questions');
+    } catch (error) {
+      setLoading(false);
+      toast.error('Login failed. Please try again.', {
         position: 'top-center',
         autoClose: 3000,
-        hideProgressBar: true,
+        hideProgressBar: false,
       });
     }
   };
@@ -66,6 +87,11 @@ const AdminLogin = () => {
       <ToastContainer />
       <div className="lg:grid lg:min-h-screen lg:grid-cols-12 flex-1">
         <section className="relative flex h-32 sm:h-80 lg:h-full items-end bg-gray-900 lg:col-span-5 xl:col-span-6">
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center p-6 rounded z-50">
+            <img src={ecociateLogo} alt="Ecociate" className="h-4 sm:h-8 w-auto" />
+            <div className="border-r border-blue-800 h-3 sm:h-8 mx-2"></div>
+            <img src={multiplierLogo} alt="Multiplier" className="h-4 sm:h-12 w-auto" />
+          </div>
           <img
             alt=""
             src={loginimg}
@@ -119,7 +145,7 @@ const AdminLogin = () => {
                 <button
                   type="submit"
                   className="bg-gradient-to-br from-green-400 to-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 transition duration-200"
-                  disabled={loading} // Disable button when loading
+                  disabled={loading}
                 >
                   {loading ? (
                     <div className="flex items-center">

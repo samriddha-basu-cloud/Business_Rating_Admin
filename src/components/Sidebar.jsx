@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-import { Menu, X, MessageCircleQuestionIcon, Star, Users, LogOut } from 'lucide-react'; // Import the LogOut icon
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, MessageCircleQuestionIcon, Star, Users, LogOut } from 'lucide-react';
+import ecociateLogo from '../assets/ecociate_logo.png';
+import multiplierLogo from '../assets/multiplier.png';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(window.innerWidth >= 768);
   const [showText, setShowText] = useState(window.innerWidth >= 768);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,7 +34,7 @@ const Sidebar = () => {
   };
 
   const handleLogout = () => {
-    navigate('/'); // Navigate to the "/" path on logout
+    navigate('/');
   };
 
   return (
@@ -48,6 +50,15 @@ const Sidebar = () => {
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
+        
+        {isOpen && (
+          <div className="flex items-center justify-center space-x-4 mb-4 mt-3">
+            <img src={ecociateLogo} alt="Ecociate" className="h-4 sm:h-5 w-auto" />
+            <div className="border-r border-blue-800 h-3 sm:h-4 mx-2"></div>
+            <img src={multiplierLogo} alt="Multiplier" className="h-6 sm:h-8 w-auto" />
+          </div>
+        )}
+        
         <nav className="flex flex-col items-start mt-6 sm:mt-8">
           <NavLink to="/set-questions" icon={<MessageCircleQuestionIcon size={18} />} text="Set Questions" showText={showText} />
           <NavLink to="/review-ratings" icon={<Star size={18} />} text="Review Ratings" showText={showText} />
@@ -55,7 +66,6 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Logout Button at the bottom */}
       <div className="mt-auto mb-6 sm:mb-8 w-full">
         <button 
           onClick={handleLogout} 
