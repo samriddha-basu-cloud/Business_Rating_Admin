@@ -124,6 +124,7 @@ const RestrictedLogin = () => {
                   type="submit"
                   className="bg-gradient-to-br from-green-400 to-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 transition duration-200"
                   disabled={loading}
+                  // onClick={() => setIsRegister(!isRegister)}
                 >
                   {loading ? (
                     <div className="flex items-center">

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { PencilIcon, TrashIcon, PlusIcon, MessageCircleQuestionIcon } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify'; // Import ToastContainer and toast
-import 'react-toastify/dist/ReactToastify.css'; // Import CSS for Toast
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SetQuestions = () => {
   const [parameter, setParameter] = useState('');
@@ -12,6 +12,7 @@ const SetQuestions = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [editableQuestionId, setEditableQuestionId] = useState(null); // State for inline editing
 
   const fetchQuestions = async () => {
     try {
@@ -41,7 +42,7 @@ const SetQuestions = () => {
       try {
         const questionRef = doc(db, 'questions', currentQuestionId);
         await updateDoc(questionRef, { parameter, description });
-        toast.success('Question updated successfully!', { autoClose: 2000 }); // Display success toast for updating
+        toast.success('Question updated successfully!', { autoClose: 2000 });
         setIsEditing(false);
         setCurrentQuestionId(null);
         fetchQuestions();
@@ -57,7 +58,7 @@ const SetQuestions = () => {
         });
         setParameter('');
         setDescription('');
-        toast.success('Question added successfully!', { autoClose: 2000 }); // Display success toast for adding
+        toast.success('Question added successfully!', { autoClose: 2000 });
         fetchQuestions();
       } catch (error) {
         console.error('Error adding question:', error);
@@ -66,6 +67,7 @@ const SetQuestions = () => {
   };
 
   const handleEdit = (question) => {
+    setEditableQuestionId(question.id);
     setParameter(question.parameter);
     setDescription(question.description);
     setIsEditing(true);
@@ -75,10 +77,35 @@ const SetQuestions = () => {
   const handleDelete = async (questionId) => {
     try {
       await deleteDoc(doc(db, 'questions', questionId));
-      toast.success('Question deleted successfully!', { autoClose: 2000 }); // Display success toast for deleting
+      toast.success('Question deleted successfully!', { autoClose: 2000 });
       fetchQuestions();
     } catch (error) {
       console.error('Error deleting question:', error);
+    }
+  };
+
+  const handleInlineEditChange = (id, field, value) => {
+    const updatedQuestions = questions.map((q) => 
+      q.id === id ? { ...q, [field]: value } : q
+    );
+    setQuestions(updatedQuestions);
+  };
+
+  const handleInlineEditSave = async (id) => {
+    const questionToUpdate = questions.find((q) => q.id === id);
+    if (questionToUpdate) {
+      try {
+        const questionRef = doc(db, 'questions', id);
+        await updateDoc(questionRef, {
+          parameter: questionToUpdate.parameter,
+          description: questionToUpdate.description,
+        });
+        toast.success('Question updated successfully!', { autoClose: 2000 });
+        setEditableQuestionId(null); // Close inline editing mode
+        fetchQuestions();
+      } catch (error) {
+        console.error('Error updating question:', error);
+      }
     }
   };
 
@@ -95,7 +122,7 @@ const SetQuestions = () => {
 
   return (
     <div className="p-2 sm:p-4 md:p-6 bg-gray-100 min-h-screen">
-      <ToastContainer /> {/* Add the ToastContainer component */}
+      <ToastContainer />
       <div className="max-w-7xl sm:max-w-4xl md:max-w-5xl mx-auto">
         <div className="bg-gradient-to-br from-green-400 to-blue-500 p-1 rounded-xl shadow-xl mb-4 sm:mb-6">
           <div className="bg-white rounded-lg p-3 sm:p-4">
@@ -139,22 +166,46 @@ const SetQuestions = () => {
                   key={question.id}
                   className="bg-white p-3 sm:p-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg"
                 >
-                  <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.parameter}</h4>
-                  <p className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base">{question.description}</p>
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => handleEdit(question)}
-                      className="p-1 sm:p-2 text-blue-500 hover:bg-blue-100 rounded-full transition-colors"
-                    >
-                      <PencilIcon size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(question.id)}
-                      className="p-1 sm:p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
-                    >
-                      <TrashIcon size={16} />
-                    </button>
-                  </div>
+                  {editableQuestionId === question.id ? (
+                    <div>
+                      <input
+                        type="text"
+                        value={question.parameter}
+                        onChange={(e) => handleInlineEditChange(question.id, 'parameter', e.target.value)}
+                        className="p-2 border rounded w-full mb-2"
+                      />
+                      <textarea
+                        value={question.description}
+                        onChange={(e) => handleInlineEditChange(question.id, 'description', e.target.value)}
+                        className="p-2 border rounded w-full mb-2"
+                      />
+                      <button
+                        onClick={() => handleInlineEditSave(question.id)}
+                        className="p-1 sm:p-2 text-green-500 hover:bg-green-100 rounded-full transition-colors"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.parameter}</h4>
+                      <p className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base">{question.description}</p>
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => handleEdit(question)}
+                          className="p-1 sm:p-2 text-blue-500 hover:bg-blue-100 rounded-full transition-colors"
+                        >
+                          <PencilIcon size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(question.id)}
+                          className="p-1 sm:p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                        >
+                          <TrashIcon size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
