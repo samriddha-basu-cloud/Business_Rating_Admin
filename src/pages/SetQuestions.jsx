@@ -356,7 +356,11 @@ const SetQuestions = () => {
                     </div>
                   ) : (
                     <div>
-                      <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.heading}</h4>
+                      {/* <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{ {__html: question.heading}}</h4> */}
+                      <div
+                        className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
+                        dangerouslySetInnerHTML={{ __html: question.heading }}
+                      ></div>
                       <div
                         className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
                         dangerouslySetInnerHTML={{ __html: question.narration }}
