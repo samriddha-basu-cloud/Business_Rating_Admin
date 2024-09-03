@@ -1,54 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { auth } from '../firebaseConfig';
 import loginimg from '../assets/login.jpg';
 
-const RestrictedLogin = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const allowedUsers = {
-    'allowed@example.com': 'allowedPassword', // Replace with actual emails and passwords
-    'another@example.com': 'anotherPassword',
-  };
+  const handleAdminLogin = () => {
+    // Show the toast notification
+    toast.info('Switching to Rating Panel...', {
+      position: 'top-center',
+      autoClose: 1000,
+      hideProgressBar: true,
+    });
 
-  const validateEmail = (email) => {
-    const regex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
-    return regex.test(email);
+    // Set a timeout of 1 second before opening the Admin Panel
+    setTimeout(() => {
+      window.open('https://bussines-model.vercel.app/', '_blank');
+    }, 2000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Start the loader
 
-    if (!validateEmail(email)) {
-      toast.error('Please enter a valid email address.', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: true,
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (allowedUsers[email] && allowedUsers[email] === password) {
+    if (email === 'admin@ecociate.com' && password === 'ecociateadmin@1909') {
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        await signInWithEmailAndPassword(auth, email, password);
+
         toast.success('Login successful!', {
           position: 'top-center',
-          autoClose: 3000,
+          autoClose: 2000,
           hideProgressBar: true,
         });
-        setLoading(false);
-        navigate('/restricted-home');
+
+        setLoading(false); // Stop the loader
+        navigate('/set-questions');
       } catch (error) {
-        setLoading(false);
+        setLoading(false); // Stop the loader
         toast.error('Login failed. Please try again.', {
           position: 'top-center',
           autoClose: 3000,
@@ -56,12 +52,12 @@ const RestrictedLogin = () => {
         });
       }
     } else {
-      toast.error('Access denied. You are not authorized to access this page.', {
+      setLoading(false); // Stop the loader
+      toast.error('Invalid credentials. Only admin can login.', {
         position: 'top-center',
         autoClose: 3000,
         hideProgressBar: true,
       });
-      setLoading(false);
     }
   };
 
@@ -77,10 +73,10 @@ const RestrictedLogin = () => {
           />
           <div className="hidden lg:relative lg:block lg:p-12">
             <h2 className="mt-6 text-2xl font-bold text-white sm:text-3xl md:text-4xl">
-              Restricted Access
+              Welcome to Ecociate!
             </h2>
             <p className="mt-4 leading-relaxed text-white/90">
-              "Please enter your credentials to access this restricted area."
+              "Please log in with your admin credentials to access the Admin Panel."
             </p>
           </div>
         </section>
@@ -123,8 +119,7 @@ const RestrictedLogin = () => {
                 <button
                   type="submit"
                   className="bg-gradient-to-br from-green-400 to-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 transition duration-200"
-                  disabled={loading}
-                  // onClick={() => setIsRegister(!isRegister)}
+                  disabled={loading} // Disable button when loading
                 >
                   {loading ? (
                     <div className="flex items-center">
@@ -143,7 +138,14 @@ const RestrictedLogin = () => {
                       </svg>
                       Processing...
                     </div>
-                  ) : 'Login'}
+                  ) : 'Admin Login'}
+                </button>
+                <button
+                  type="button"
+                  className="text-blue-900 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 transition duration-200"
+                  onClick={handleAdminLogin}
+                >
+                  User Login
                 </button>
               </div>
             </form>
@@ -154,4 +156,4 @@ const RestrictedLogin = () => {
   );
 };
 
-export default RestrictedLogin;
+export default AdminLogin;

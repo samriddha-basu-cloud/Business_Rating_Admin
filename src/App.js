@@ -1,20 +1,22 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import SetQuestions from './pages/SetQuestions';
 import ReviewRatings from './pages/ReviewRatings';
 import UserRanking from './pages/UserRanking';
-import RestrictedLogin from './pages/LoginPage';
+import AdminLogin from './pages/AdminLogin';
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation(); // Moved inside the Router context
+
   return (
-    <Router>
+    <>
+      {/* Conditionally render the Sidebar only if the current path is not "/" */}
+      {location.pathname !== '/' && <Sidebar />}
       <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
-        <div className="flex-1 ml-16 lg:ml-64 transition-all duration-300">
+        <div className={`flex-1 ${location.pathname !== '/' ? 'ml-16 lg:ml-64' : ''} transition-all duration-300`}>
           <main className="p-4 md:p-8">
             <Routes>
-              <Route path="/" element={<RestrictedLogin />} />
               <Route path="/set-questions" element={<SetQuestions />} />
               <Route path="/review-ratings" element={<ReviewRatings />} />
               <Route path="/user-ranking" element={<UserRanking />} />
@@ -22,6 +24,17 @@ const App = () => {
           </main>
         </div>
       </div>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<AdminLogin />} />
+        <Route path="/*" element={<AppContent />} /> {/* Render other routes inside AppContent */}
+      </Routes>
     </Router>
   );
 };
