@@ -5,6 +5,7 @@ import SetQuestions from './pages/SetQuestions';
 import ReviewRatings from './pages/ReviewRatings';
 import UserRanking from './pages/UserRanking';
 import AdminLogin from './pages/AdminLogin';
+import AssignAdmin from './pages/AssignAdmin'; // Import the new AssignAdmin component
 
 const AppContent = () => {
   const location = useLocation(); // Moved inside the Router context
@@ -20,6 +21,7 @@ const AppContent = () => {
               <Route path="/set-questions" element={<SetQuestions />} />
               <Route path="/review-ratings" element={<ReviewRatings />} />
               <Route path="/user-ranking" element={<UserRanking />} />
+              <Route path="/assign-admin" element={<AssignAdmin />} /> {/* Add route for Assign Admin */}
             </Routes>
           </main>
         </div>

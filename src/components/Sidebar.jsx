@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, MessageCircleQuestionIcon, Star, Users, LogOut } from 'lucide-react';
+import { Menu, X, MessageCircle, Star, Users, LogOut, UserCheck } from 'lucide-react'; // Import a suitable icon for "Assign Admin"
 import ecociateLogo from '../assets/ecociate_logo.png';
 import multiplierLogo from '../assets/multiplier.png';
 
@@ -60,9 +60,10 @@ const Sidebar = () => {
         )}
         
         <nav className="flex flex-col items-start mt-6 sm:mt-8">
-          <NavLink to="/set-questions" icon={<MessageCircleQuestionIcon size={18} />} text="Set Questions" showText={showText} />
+          <NavLink to="/set-questions" icon={<MessageCircle size={18} />} text="Set Questions" showText={showText} />
           <NavLink to="/review-ratings" icon={<Star size={18} />} text="Review Ratings" showText={showText} />
           <NavLink to="/user-ranking" icon={<Users size={18} />} text="User Ranking" showText={showText} />
+          <NavLink to="/assign-admin" icon={<UserCheck size={18} />} text="Assign Admin" showText={showText} /> {/* New tab added */}
         </nav>
       </div>
 
