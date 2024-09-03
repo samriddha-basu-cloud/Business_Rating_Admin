@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import SetQuestions from './pages/SetQuestions';
 import ReviewRatings from './pages/ReviewRatings';
 import UserRanking from './pages/UserRanking';
+import RestrictedLogin from './pages/LoginPage';
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <div className="flex-1 ml-16 lg:ml-64 transition-all duration-300">
           <main className="p-4 md:p-8">
             <Routes>
+              <Route path="/" element={<RestrictedLogin />} />
               <Route path="/set-questions" element={<SetQuestions />} />
               <Route path="/review-ratings" element={<ReviewRatings />} />
               <Route path="/user-ranking" element={<UserRanking />} />
