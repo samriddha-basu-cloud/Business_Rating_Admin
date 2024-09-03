@@ -9,6 +9,8 @@
     "@testing-library/user-event": "^13.5.0",
     "chart.js": "^4.4.4",
     "firebase": "^10.13.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lucide-react": "^0.437.0",
     "quill": "^2.0.2",
     "react": "^18.3.1",

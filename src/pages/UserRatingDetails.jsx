@@ -1,38 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import { Users, X, Star } from 'lucide-react';
+import { Users, X, StarsIcon } from 'lucide-react';
 
 const UserRatingDetails = ({ userId, onClose }) => {
-  const [questions, setQuestions] = useState([]);
-  const [userRatings, setUserRatings] = useState({});
+  const [userAnswers, setUserAnswers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchQuestionsAndRatings = async () => {
+    const fetchUserRatings = async () => {
       try {
-        const questionsSnapshot = await getDocs(collection(db, 'questions'));
-        const questionsList = questionsSnapshot.docs.map((doc) => ({
-          ques_id: doc.data().ques_id,
-          parameter: doc.data().parameter,
-          description: doc.data().description,
-        }));
-        setQuestions(questionsList);
-
+        // Fetch the user's submission data
         const userSnapshot = await getDocs(collection(db, 'submissions'));
         const userData = userSnapshot.docs.find((doc) => doc.id === userId)?.data();
-        setUserRatings(userData?.ratings || {});
 
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
+        if (userData && userData.answers) {
+          setUserAnswers(userData.answers);
+        }
+
+        setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching user data:', error);
         setIsLoading(false);
       }
     };
 
-    fetchQuestionsAndRatings();
+    fetchUserRatings();
   }, [userId]);
 
   if (isLoading) {
@@ -46,23 +39,10 @@ const UserRatingDetails = ({ userId, onClose }) => {
     );
   }
 
-  const renderStars = (rating) => {
-    let starCount;
-    switch (rating) {
-      case 'High':
-        starCount = 3;
-        break;
-      case 'Medium':
-        starCount = 2;
-        break;
-      case 'Low':
-        starCount = 1;
-        break;
-      default:
-        starCount = 0;
-    }
-    return Array(starCount)
-      .fill(<Star size={14} className="mr-1 text-white" />)
+  // Function to render stars based on marks
+  const renderStars = (marks) => {
+    return Array(marks)
+      .fill(<StarsIcon size={14} className="mr-1 text-yellow-400" />)
       .map((star, index) => <React.Fragment key={index}>{star}</React.Fragment>);
   };
 
@@ -77,17 +57,16 @@ const UserRatingDetails = ({ userId, onClose }) => {
             </button>
           </div>
           <ul className="space-y-4 sm:space-y-6">
-            {questions.map((question) => (
-              <li key={question.ques_id} className="bg-gray-50 p-3 sm:p-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-                <h3 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{question.parameter}</h3>
-                <p className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base">{question.description}</p>
+            {userAnswers.map((answer, index) => (
+              <li key={index} className="bg-gray-50 p-3 sm:p-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+                <h3
+                  className="font-semibold text-base sm:text-lg text-green-800 mb-1 sm:mb-2"
+                  dangerouslySetInnerHTML={{ __html: answer.questionHeading }}
+                ></h3>
                 <div className="flex items-center">
-                  <span className="text-xs sm:text-sm font-medium text-gray-700 mr-2 sm:mr-3">Rating:</span>
+                  <span className="text-xs sm:text-sm font-medium text-blue-500 mr-2 sm:mr-3">Rating:</span>
                   <div className="px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg font-semibold flex items-center">
-                    {renderStars(userRatings[question.ques_id])}
-                    <span className="text-sm sm:text-base ml-1 sm:ml-2">
-                      {userRatings[question.ques_id] || 'No Rating'}
-                    </span>
+                    {renderStars(answer.marks)}
                   </div>
                 </div>
               </li>
