@@ -13,6 +13,7 @@ const AssignAdmin = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [admins, setAdmins] = useState([]);
   const [isAdminsLoading, setIsAdminsLoading] = useState(true);
+  const [matchingEmails, setMatchingEmails] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,6 +46,40 @@ const AssignAdmin = () => {
     }
   };
 
+  const debouncedFetchMatchingEmails = useCallback(
+    debounce(async (email) => {
+      if (email === '') {
+        setMatchingEmails([]);
+        setUser(null);
+        return;
+      }
+
+      try {
+        const lowercasedEmail = email.toLowerCase();
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '>=', lowercasedEmail), where('email', '<=', lowercasedEmail + '\uf8ff'));
+        const querySnapshot = await getDocs(q);
+        const emails = querySnapshot.docs.map((doc) => doc.data().email);
+        setMatchingEmails(emails);
+      } catch (error) {
+        console.error('Error fetching matching emails:', error);
+      }
+    }, 300),
+    []
+  );
+
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value.toLowerCase();
+    setEmail(newEmail);
+    debouncedFetchMatchingEmails(newEmail);
+  };
+
+  const handleSelectEmail = (selectedEmail) => {
+    setEmail(selectedEmail.toLowerCase());
+    setMatchingEmails([]);
+    debouncedFetchUser(selectedEmail);
+  };
+
   const debouncedFetchUser = useCallback(
     debounce(async (email) => {
       if (email === '') {
@@ -54,8 +89,9 @@ const AssignAdmin = () => {
 
       try {
         setIsLoading(true);
+        const lowercasedEmail = email.toLowerCase();
         const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('email', '==', email));
+        const q = query(usersRef, where('email', '==', lowercasedEmail));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
@@ -72,11 +108,6 @@ const AssignAdmin = () => {
     }, 3000),
     []
   );
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    debouncedFetchUser(e.target.value);
-  };
 
   const handleAssignAdmin = async () => {
     if (!user) return;
@@ -143,7 +174,7 @@ const AssignAdmin = () => {
           </div>
         </div>
 
-        <div className="mb-4 sm:mb-6 space-y-3">
+        <div className="mb-4 sm:mb-6 space-y-3 relative">
           <input
             type="email"
             value={email}
@@ -152,10 +183,28 @@ const AssignAdmin = () => {
             placeholder="Enter user's email to assign as admin"
             required
           />
+          {matchingEmails.length > 0 && (
+            <ul className="absolute z-10 bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto shadow-md">
+              {matchingEmails.map((matchingEmail) => (
+                <li
+                  key={matchingEmail}
+                  className="p-2 cursor-pointer hover:bg-blue-100"
+                  onClick={() => handleSelectEmail(matchingEmail)}
+                >
+                  {matchingEmail}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {isLoading ? (
-          <p className="text-center text-gray-500">Checking for users... <span className="dot-flashing"></span></p>
+          <div className="bg-white p-4 rounded-lg shadow-md mb-4 shimmer">
+            <div className="h-6 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded mb-4"></div>
+            <div className="h-10 bg-gray-300 rounded"></div>
+          </div>
         ) : (
           user && (
             <div className="bg-white p-4 rounded-lg shadow-md mb-4">
@@ -171,7 +220,11 @@ const AssignAdmin = () => {
               </p>
               <button
                 onClick={handleAssignAdmin}
-                className="w-full p-2 sm:p-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:from-green-500 hover:to-blue-600 text-sm sm:text-base"
+                className={`w-full p-2 sm:p-3 rounded-lg font-semibold flex items-center justify-center transition-all duration-300 text-sm sm:text-base ${
+                  user.admin
+                    ? 'bg-gray-400 cursor-not-allowed text-gray-700'
+                    : 'bg-gradient-to-r from-green-400 to-blue-500 text-white hover:from-green-500 hover:to-blue-600'
+                }`}
                 disabled={user.admin}
               >
                 Assign Admin
@@ -264,6 +317,22 @@ const AssignAdmin = () => {
             background-color: rgba(0, 0, 0, 0.2);
           }
         }
+
+        /* Shimmer effect */
+        .shimmer {
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0.2) 25%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0.2) 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
       `}</style>
     </div>
   );
@@ -275,7 +344,7 @@ function debounce(func, delay) {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
       func(...args);
-    }, 2000);
+    }, delay);
   };
 }
 
