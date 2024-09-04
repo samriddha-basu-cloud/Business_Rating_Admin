@@ -8,14 +8,11 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 const SetQuestions = () => {
-  // State for the new fields
   const [heading, setHeading] = useState('');
   const [narration, setNarration] = useState('');
   const [question, setQuestion] = useState('');
   const [questions, setQuestions] = useState([]);
-  const [options, setOptions] = useState([{ text: '', marks: 0 }]); // State for options
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentQuestionId, setCurrentQuestionId] = useState(null);
+  const [options, setOptions] = useState([{ text: '', marks: 0 }]);
   const [isLoading, setIsLoading] = useState(true);
   const [editableQuestionId, setEditableQuestionId] = useState(null);
 
@@ -43,46 +40,27 @@ const SetQuestions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isEditing) {
-      try {
-        const questionRef = doc(db, 'questions', currentQuestionId);
-        await updateDoc(questionRef, { heading, narration, question, options });
-        toast.success('Question updated successfully!', { autoClose: 2000 });
-        setIsEditing(false);
-        setCurrentQuestionId(null);
-        fetchQuestions();
-      } catch (error) {
-        console.error('Error updating question:', error);
-      }
-    } else {
-      try {
-        await addDoc(collection(db, 'questions'), {
-          heading,
-          narration,
-          question,
-          options,
-          ques_id: Date.now(),
-        });
-        setHeading('');
-        setNarration('');
-        setQuestion('');
-        setOptions([{ text: '', marks: 0 }]); // Reset options
-        toast.success('Question added successfully!', { autoClose: 2000 });
-        fetchQuestions();
-      } catch (error) {
-        console.error('Error adding question:', error);
-      }
+    try {
+      await addDoc(collection(db, 'questions'), {
+        heading,
+        narration,
+        question,
+        options,
+        ques_id: Date.now(),
+      });
+      setHeading('');
+      setNarration('');
+      setQuestion('');
+      setOptions([{ text: '', marks: 0 }]);
+      toast.success('Question added successfully!', { autoClose: 2000 });
+      fetchQuestions();
+    } catch (error) {
+      console.error('Error adding question:', error);
     }
   };
 
-  const handleEdit = (question) => {
-    setEditableQuestionId(question.id);
-    setHeading(question.heading);
-    setNarration(question.narration);
-    setQuestion(question.question);
-    setOptions(question.options || [{ text: '', marks: 0 }]); // Load existing options or default
-    setIsEditing(true);
-    setCurrentQuestionId(question.id);
+  const handleEdit = (id) => {
+    setEditableQuestionId(id);
   };
 
   const handleDelete = async (questionId) => {
@@ -137,6 +115,10 @@ const SetQuestions = () => {
     }
   };
 
+  const handleInlineEditCancel = () => {
+    setEditableQuestionId(null);
+  };
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
@@ -170,17 +152,17 @@ const SetQuestions = () => {
             theme="snow"
             modules={{
               toolbar: [
-                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ header: '1' }, { header: '2' }, { font: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
                 ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'align': [] }],
+                [{ color: [] }, { background: [] }],
+                [{ align: [] }],
                 ['link'],
                 ['clean'],
               ],
             }}
           />
-          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Narative</h4>
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-3">Narration</h4>
           <ReactQuill
             value={narration}
             onChange={setNarration}
@@ -189,11 +171,11 @@ const SetQuestions = () => {
             theme="snow"
             modules={{
               toolbar: [
-                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ header: '1' }, { header: '2' }, { font: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
                 ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'align': [] }],
+                [{ color: [] }, { background: [] }],
+                [{ align: [] }],
                 ['link'],
                 ['clean'],
               ],
@@ -208,11 +190,11 @@ const SetQuestions = () => {
             theme="snow"
             modules={{
               toolbar: [
-                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ header: '1' }, { header: '2' }, { font: [] }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
                 ['bold', 'italic', 'underline', 'strike'],
-                [{ 'color': [] }, { 'background': [] }],
-                [{ 'align': [] }],
+                [{ color: [] }, { background: [] }],
+                [{ align: [] }],
                 ['link'],
                 ['clean'],
               ],
@@ -260,8 +242,8 @@ const SetQuestions = () => {
             type="submit"
             className="w-full p-2 sm:p-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg font-semibold flex items-center justify-center transition-all duration-300 hover:from-green-500 hover:to-blue-600 text-sm sm:text-base"
           >
-            {isEditing ? <PencilIcon size={16} className="mr-2" /> : <PlusIcon size={16} className="mr-2" />}
-            {isEditing ? 'Update Question' : 'Add Question'}
+            <PlusIcon size={16} className="mr-2" />
+            Add Question
           </button>
         </form>
 
@@ -282,11 +264,11 @@ const SetQuestions = () => {
                         className="p-2 border rounded w-full mb-2"
                         modules={{
                           toolbar: [
-                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ header: '1' }, { header: '2' }, { font: [] }],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
                             ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'align': [] }],
+                            [{ color: [] }, { background: [] }],
+                            [{ align: [] }],
                             ['link'],
                             ['clean'],
                           ],
@@ -298,11 +280,11 @@ const SetQuestions = () => {
                         className="p-2 border rounded w-full mb-2"
                         modules={{
                           toolbar: [
-                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ header: '1' }, { header: '2' }, { font: [] }],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
                             ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'align': [] }],
+                            [{ color: [] }, { background: [] }],
+                            [{ align: [] }],
                             ['link'],
                             ['clean'],
                           ],
@@ -314,11 +296,11 @@ const SetQuestions = () => {
                         className="p-2 border rounded w-full mb-2"
                         modules={{
                           toolbar: [
-                            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            [{ header: '1' }, { header: '2' }, { font: [] }],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
                             ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'color': [] }, { 'background': [] }],
-                            [{ 'align': [] }],
+                            [{ color: [] }, { background: [] }],
+                            [{ align: [] }],
                             ['link'],
                             ['clean'],
                           ],
@@ -347,22 +329,29 @@ const SetQuestions = () => {
                           </button>
                         </div>
                       ))}
-                      <button
-                        onClick={() => handleInlineEditSave(question.id)}
-                        className="p-1 sm:p-2 text-green-500 hover:bg-green-100 rounded-full transition-colors"
-                      >
-                        Save
-                      </button>
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => handleInlineEditSave(question.id)}
+                          className="p-1 sm:p-2 text-green-500 hover:bg-green-100 rounded-full transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleInlineEditCancel}
+                          className="p-1 sm:p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div>
-                      {/* <h4 className="font-semibold text-base sm:text-lg text-gray-800 mb-1 sm:mb-2">{ {__html: question.heading}}</h4> */}
-                     <div className="font-bold mb-1">Heading</div>
-                    <div
-                      className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
-                      dangerouslySetInnerHTML={{ __html: question.heading }}
-                    ></div>
-                    <div className="font-bold mb-1">Naration</div>
+                      <div className="font-bold mb-1">Heading</div>
+                      <div
+                        className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
+                        dangerouslySetInnerHTML={{ __html: question.heading }}
+                      ></div>
+                      <div className="font-bold mb-1">Narration</div>
                       <div
                         className="text-gray-600 mb-2 sm:mb-3 text-sm sm:text-base"
                         dangerouslySetInnerHTML={{ __html: question.narration }}
@@ -382,7 +371,7 @@ const SetQuestions = () => {
                       </ul>
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => handleEdit(question)}
+                          onClick={() => handleEdit(question.id)}
                           className="p-1 sm:p-2 text-blue-500 hover:bg-blue-100 rounded-full transition-colors"
                         >
                           <PencilIcon size={16} />
