@@ -24,7 +24,8 @@ const UserRanking = () => {
         const totalMarksObtained = data.answers.reduce((acc, answer) => acc + (answer.marks || 0), 0);
 
         // Find the highest mark for a single question
-        const highestMark = Math.max(...data.answers.map((answer) => answer.marks || 0));
+        const highestMark = 4
+        // const highestMark = Math.max(...data.answers.map((answer) => answer.marks || 0));
         const totalQuestions = data.answers.length;
 
         // Calculate the total achievable marks

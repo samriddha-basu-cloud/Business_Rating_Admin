@@ -60,11 +60,11 @@ const ReviewRatings = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {users.map((user) => (
             <div key={user.id} className="bg-white p-3 sm:p-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-              <h3 className="font-bold text-lg sm:text-xl text-gray-800 mb-2">{user.name}</h3>
-              <p className="text-gray-600 flex items-center mb-1 sm:mb-2 text-sm sm:text-base">
+              <h3 className="font-bold text-lg sm:text-xl text-gray-800 mb-2">{user.userName}</h3>
+              {/* <p className="text-gray-600 flex items-center mb-1 sm:mb-2 text-sm sm:text-base">
                 <Mail className="mr-1 sm:mr-2 text-blue-500" size={16} />
-                {user.email}
-              </p>
+                {user.name}
+              </p> */}
               <p className="text-gray-600 flex items-center mb-3 text-sm sm:text-base">
                 <Building className="mr-1 sm:mr-2 text-blue-500" size={16} />
                 {user.company}
